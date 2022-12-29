@@ -7,6 +7,7 @@ Mandatory :
 
 Optional :
 - MongoCXX (3.7) library
+- bsoncxx that comes with MongoCXX
 - Boost (1.81) library 
 
 Build the libs that suit your system configuration and put them into a "library" folder along with the present "include" folder.
