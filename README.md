@@ -9,4 +9,5 @@ Optional :
 - MongoCXX library
 - Boost library
 
-Build the libs that suit your system configuration. Will later add CMake files to generate the SLN.
+Build the libs that suit your system configuration and put them into a "library" folder along with the present "include" folder.
+I will later add CMake files to generate a user-specific SLN.
