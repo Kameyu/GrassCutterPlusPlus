@@ -8,8 +8,10 @@ Grasscutter::Grasscutter()
 	init();
 }
 
-inline void Grasscutter::init() const
+inline void Grasscutter::init()
 {
+	setCrypto(new Crypto);
+	setConstants(new GameConstants);
 	cryptoModule->setEncryptSeed(std::stoull("11468049314633205968"));
 	cryptoModule->loadKeys(); // Load keys once Crypto module is up
 }

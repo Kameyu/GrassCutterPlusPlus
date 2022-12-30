@@ -17,7 +17,7 @@ public:
 	Grasscutter(Grasscutter&&) = delete;
 	Grasscutter& operator=(Grasscutter&&) = delete;
 
-	void init() const;
+	void init();
 
 	// Getters
 	[[nodiscard]] Crypto* getCrypto() const { return this->cryptoModule; }
