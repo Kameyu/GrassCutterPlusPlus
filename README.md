@@ -4,10 +4,10 @@ A C++ reimplementation of a Java emulator for a certain anime game
 ## Requirements
 Mandatory :
 - CryptoPP (8.7) library
+- JsonCpp (1.9.5)
 
 Optional :
 - MongoCXX (3.7) library
-- bsoncxx that comes with MongoCXX
 - Boost (1.81) library 
 
 Build the libs that suit your system configuration and put them into a "library" folder along with the present "include" folder.
