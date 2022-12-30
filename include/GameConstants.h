@@ -9,7 +9,13 @@ class GameConstants
 {
 public:
 	GameConstants();
-	~GameConstants() = default;
+	~GameConstants()=default;
+
+	GameConstants(const GameConstants&) = delete;
+	GameConstants& operator =(GameConstants const&) = delete;
+	GameConstants(GameConstants&&) = delete;
+	GameConstants& operator=(GameConstants&&) = delete;
+
 	std::string VERSION = "3.3.0";
 
 	const uint32_t DEFAULT_TEAMS = 4;

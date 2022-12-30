@@ -23,6 +23,6 @@ public:
 
 	Position* set(float x, float y);
 	Position* set(float x, float y, float z);
-	Position* set(std::vector<float>);
+	Position* set(const std::vector<float>&);
 	Position* set(std::string&, const std::string&); // args: str, delimiter
 };

@@ -28,7 +28,7 @@ Position* Position::set(float x, float y, float z)
 	return this;
 }
 
-Position* Position::set(std::vector<float> pos)
+Position* Position::set(const std::vector<float>& pos)
 {
 	switch (pos.size())
 	{
