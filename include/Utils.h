@@ -40,3 +40,12 @@ inline void dump16(char* str, const int len)
 	}
 	printf("\n");
 }
+
+inline int abilityHash(const std::string& str) {
+	int v7 = 0;
+	int v8 = 0;
+	while (v8 < static_cast<int>(str.length())) {
+		v7 = str.at(v8++) + 131 * v7;
+	}
+	return v7;
+}

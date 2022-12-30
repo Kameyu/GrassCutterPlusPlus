@@ -2,16 +2,14 @@
 
 #include "Grasscutter.h"
 #include "Crypto.h"
-#include "Utils.h"
 
 Grasscutter::Grasscutter()
 {
 	init();
 }
 
-inline void Grasscutter::init()
+inline void Grasscutter::init() const
 {
-	setCrypto(new Crypto); // init crypto module
 	cryptoModule->setEncryptSeed(std::stoull("11468049314633205968"));
 	cryptoModule->loadKeys(); // Load keys once Crypto module is up
 }
@@ -19,4 +17,9 @@ inline void Grasscutter::init()
 void Grasscutter::setCrypto(Crypto* crypto)
 {
 	this->cryptoModule = crypto;
+}
+
+void Grasscutter::setConstants(GameConstants* game_constants)
+{
+	this->constants = game_constants;
 }

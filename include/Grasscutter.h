@@ -1,10 +1,12 @@
 #pragma once
 #include "Crypto.h"
+#include "GameConstants.h"
 
 class Grasscutter
 {
 private:
-	Crypto* cryptoModule ={};
+	Crypto* cryptoModule{};
+	GameConstants* constants{};
 
 public:
 	Grasscutter();
@@ -15,11 +17,13 @@ public:
 	Grasscutter(Grasscutter&&) = delete;
 	Grasscutter& operator=(Grasscutter&&) = delete;
 
+	void init() const;
+
 	// Getters
 	[[nodiscard]] Crypto* getCrypto() const { return this->cryptoModule; }
+	[[nodiscard]] GameConstants* getConstants() const { return this->constants; }
 
 	// Setters
 	void setCrypto(Crypto*);
-
-	void init();
+	void setConstants(GameConstants* game_constants);
 };

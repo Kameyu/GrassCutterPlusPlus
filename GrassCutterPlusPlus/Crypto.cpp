@@ -8,8 +8,6 @@
 #include "Utils.h"
 #include "cryptopp/files.h"
 
-using namespace CryptoPP;
-
 void Crypto::_xor(char* packet, const char* key)
 {
 	try
@@ -17,9 +15,9 @@ void Crypto::_xor(char* packet, const char* key)
 		for (size_t i = 0; i < strlen(packet); i++)
 			packet[i] ^= key[i % strlen(key)];
 	}
-	catch(int cursor)
+	catch (const std::exception& e)
 	{
-		std::cerr << "Crypto xor error @ cursor " << cursor << std::endl;
+		std::cerr << "XOR Failed with Error: " << e.what() << std::endl;
 	}
 }
 
@@ -35,23 +33,29 @@ uint8_t Crypto::loadKeys()
 
 	try
 	{
+		// Load each X_Pub.der key
 		for (const auto& entry : std::filesystem::directory_iterator("./resources/keys/game_keys/"))
 		{
-			if (entry.path().string().find("_Pub.der") != std::string::npos)
-			{ // Found our pub_key
-				RSA::PublicKey pubKey;
-				int key = std::stoi(entry.path().filename().string()); // 2_Pub.der, 3_Pub.der, etc
+			if (entry.path().extension() == ".der")
+			{ // Found our pub_keys
+				int idx = std::stoi(entry.path().filename().string()); // 2_Pub.der, 3_Pub.der, etc
 
-				// Load the public key to BT as FS
-				pubKey.Load(FileSource(entry.path().string().c_str(), true, nullptr, true).Ref());
-				EncryptionKeys.try_emplace(key, pubKey);
-				std::cout << " " << entry.path().filename().string() << std::endl;
+				if (std::ifstream publicKeyFile(entry.path(), std::ios::binary); publicKeyFile)
+				{
+					CryptoPP::RSA::PublicKey pubKey;
+					CryptoPP::ByteQueue queue;
+					CryptoPP::FileSource file(publicKeyFile, true);
+					file.TransferTo(queue);
+					queue.MessageEnd();
+					pubKey.Load(queue);
+					EncryptionKeys.try_emplace(idx, pubKey);
+				}
 			}
 		}
 	}
-	catch(errno_t err)
+	catch (const std::exception& e)
 	{
-		std::cerr << "Error loading RSA keys, errno: " << errno << err << std::endl;
+		std::cerr << "An error occurred while loading keys: " << e.what() << std::endl;
 	}
 	return 0;
 } 
@@ -88,7 +92,14 @@ void Crypto::setEncryptSeedBuffer(const char* buf)
 
 void Crypto::setSigningKey(const char* path)
 {
-	this->CUR_SIGNING_KEY.Load(FileSource(path, true, nullptr, true).Ref());
+	if (std::ifstream signingKeyFile(path, std::ios::binary); signingKeyFile)
+	{
+		CryptoPP::ByteQueue queue;
+		CryptoPP::FileSource file(signingKeyFile, true);
+		file.TransferTo(queue);
+		queue.MessageEnd();
+		CUR_SIGNING_KEY.Load(queue);
+	}
 }
 
 void Crypto::setSessionKey(const char* buf)

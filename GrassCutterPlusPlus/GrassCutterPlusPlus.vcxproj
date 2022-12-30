@@ -140,12 +140,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameConstants.cpp" />
     <ClCompile Include="Grasscutter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Crypto.cpp" />
     <ClCompile Include="Position.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\GameConstants.h" />
     <ClInclude Include="..\include\Crypto.h" />
     <ClInclude Include="..\include\Grasscutter.h" />
     <ClInclude Include="..\include\Position.h" />
