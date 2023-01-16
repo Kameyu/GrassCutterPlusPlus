@@ -1,12 +1,12 @@
+#include <random>
 #include <string>
 #include <cstring>
 #include <iostream>
-
 #include <filesystem>
 
-#include "Crypto.h"
 #include "Utils.h"
 #include "cryptopp/files.h"
+#include "Crypto.h"
 
 void Crypto::_xor(char* packet, const char* key)
 {
@@ -23,49 +23,48 @@ void Crypto::_xor(char* packet, const char* key)
 
 uint8_t Crypto::loadKeys()
 {
-	this->setDispatchKey(getFileContent("./resources/keys/dispatchKey.bin")); // DISPATCH_KEY
-	this->setDispatchSeed(getFileContent("./resources/keys/dispatchSeed.bin")); // DISPATCH_SEED
-	this->setEncryptKey(getFileContent("./resources/keys/secretKey.bin")); // ENCRYPT_KEY
-	this->setEncryptSeedBuffer(getFileContent("./resources/keys/secretKeyBuffer.bin")); // ENCRYPT_SEED_BUFFER
+	setDispatchKey(getFileContent("./resources/keys/dispatchKey.bin")); // DISPATCH_KEY
+	setDispatchSeed(getFileContent("./resources/keys/dispatchSeed.bin")); // DISPATCH_SEED
+	setEncryptKey(getFileContent("./resources/keys/secretKey.bin")); // ENCRYPT_KEY
+	setEncryptSeedBuffer(getFileContent("./resources/keys/secretKeyBuffer.bin")); // ENCRYPT_SEED_BUFFER
 
 	// CUR_SIGNING_KEY
 	this->setSigningKey("./resources/keys/SigningKey.der"); // Not sure this works, but my guess is it will
-
-	try
+	// Load each X_Pub.der key
+	for (const auto& entry : std::filesystem::directory_iterator("./resources/keys/game_keys/"))
 	{
-		// Load each X_Pub.der key
-		for (const auto& entry : std::filesystem::directory_iterator("./resources/keys/game_keys/"))
-		{
-			if (entry.path().extension() == ".der")
-			{ // Found our pub_keys
-				int idx = std::stoi(entry.path().filename().string()); // 2_Pub.der, 3_Pub.der, etc
-
-				if (std::ifstream publicKeyFile(entry.path(), std::ios::binary); publicKeyFile)
-				{
-					CryptoPP::RSA::PublicKey pubKey;
-					CryptoPP::ByteQueue queue;
-					CryptoPP::FileSource file(publicKeyFile, true);
-					file.TransferTo(queue);
-					queue.MessageEnd();
-					pubKey.Load(queue);
-					EncryptionKeys.try_emplace(idx, pubKey);
-				}
+		if (entry.path().extension() == ".der")
+		{ // Found our pub_keys
+			int idx = std::stoi(entry.path().filename().string()); // X_Pub.der
+			try
+			{ // Load the RSA keys from .der files
+				CryptoPP::RSA::PublicKey pubKey;
+				CryptoPP::FileSource key_file(entry.path().c_str(), true);
+				pubKey.Load(key_file);
+				EncryptionKeys.try_emplace(idx, pubKey);
+			}
+			catch (const CryptoPP::FileStore::OpenErr& e)
+			{
+				std::cerr << "Error opening public key file: " << e.what() << std::endl;
 			}
 		}
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "An error occurred while loading keys: " << e.what() << std::endl;
 	}
 	return 0;
 } 
 
 char* Crypto::createSessionKey(const int length)
 {
-	srand(static_cast<unsigned int>(time(nullptr)));
+	std::random_device rd;
+    std::mt19937 gen(rd());
+
+	std::uniform_int_distribution<> distr(-128, 127);
+
 	const auto buf = new char[length];
 	for (int i = 0; i < length; i++)
-		buf[i] = static_cast<char>(rand() % 256 - 128); // Fill array with generated random byte (-128 to 127)
+	{
+		buf[i] = static_cast<char>(distr(gen)); // Fill array with generated random byte (-128 to 127)
+		//std::cout << "Generated char : " << buf[i] << std::endl;
+	}
 	setSessionKey(buf); // Set the freshly created session key
 	return buf;
 }
@@ -92,13 +91,14 @@ void Crypto::setEncryptSeedBuffer(const char* buf)
 
 void Crypto::setSigningKey(const char* path)
 {
-	if (std::ifstream signingKeyFile(path, std::ios::binary); signingKeyFile)
+	try
 	{
-		CryptoPP::ByteQueue queue;
-		CryptoPP::FileSource file(signingKeyFile, true);
-		file.TransferTo(queue);
-		queue.MessageEnd();
-		CUR_SIGNING_KEY.Load(queue);
+		CryptoPP::FileSource file(path, true);
+		CUR_SIGNING_KEY.Load(file);
+	}
+	catch (const CryptoPP::FileStore::OpenErr& e)
+	{
+		std::cerr << "Error opening private key file: " << e.what() << std::endl;
 	}
 }
 

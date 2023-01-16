@@ -24,6 +24,7 @@ public:
 	void init();
 	void loadConfig();
 	void generateDefaultConfig();
+	bool integrityCheckup();
 
 	// Getters
 	[[nodiscard]] Crypto* getCrypto() const { return this->cryptoModule; }

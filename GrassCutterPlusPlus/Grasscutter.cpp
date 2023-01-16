@@ -5,6 +5,14 @@
 #include "Crypto.h"
 #include "json/json.h"
 
+//Required to init mongo client
+#include <filesystem>
+
+#include "mongocxx/client.hpp"
+#include "mongocxx/instance.hpp"
+#include "mongocxx/uri.hpp"
+
+
 Grasscutter::Grasscutter()
 {
 	init();
@@ -18,6 +26,24 @@ inline void Grasscutter::init()
 	setConstants(new GameConstants);
 	cryptoModule->setEncryptSeed(std::stoull("11468049314633205968"));
 	cryptoModule->loadKeys(); // Load keys once Crypto module is up
+
+	/*
+	 * Server integrity checkup
+	 */
+	if (!integrityCheckup())
+	{
+		std::cout << "Server integrity failure. Exiting..." << std::endl;
+		return;
+	}
+
+	/* TODO : Init mongocxx client */
+	mongocxx::instance instance{}; // This should be done only once. Init the instance.
+	const mongocxx::client client(mongocxx::uri{});  // default URI string : mongodb://localhost:27017, no need to specify it for now
+	//const mongocxx::client client(mongocxx::uri(configFile["databaseInfo"]["server"]["connectionUri"].asString())); // <--- Will be used when server is fully operational
+	const mongocxx::database db = client["grasscutter"];
+	mongocxx::collection coll = db["accounts"];
+	/* MongoCxx connection is up
+	 * do stuff... */
 }
 
 void Grasscutter::loadConfig()
@@ -28,9 +54,10 @@ void Grasscutter::loadConfig()
 		s = std::string((std::istreambuf_iterator(file)), std::istreambuf_iterator<char>());
 	else
 	{
-		generateDefaultConfig();
+		generateDefaultConfig(); // will overwrite configFile and write out config.json
 		return;
 	}
+	//			src		dest
 	reader.parse(s, this->configFile);
 }
 
@@ -173,6 +200,35 @@ void Grasscutter::generateDefaultConfig()
 	std::ofstream outputFileStream("./config.json");
 	writer->write(defaultConfig, &outputFileStream);
 	outputFileStream.close();
+
+	// set current config to default config
+	configFile = defaultConfig; // will overwrite comments
+}
+
+bool Grasscutter::integrityCheckup()
+{
+	
+
+	// resources
+	if (!std::filesystem::directory_iterator("./resources/")->exists())
+	{
+		std::cout << "Resources folder not found. Creating and exiting..." << std::endl;
+		return false;
+	}
+
+	// BinOutput + ExcelBinOutput
+	/*if (!std::filesystem::directory_iterator("./resources/BinOutput/")->exists() ||
+		!std::filesystem::directory_iterator("./resources/ExcelBinOutput/")->exists())
+	{
+		std::cout << "Bin folders not found. Creating and exiting..." << std::endl;
+		return false;
+	}*/
+
+	// game data checkup
+	/*std::string s = configFile["folderStructure"]["data"]
+	if (!std::filesystem::directory_iterator())*/
+
+	return true;
 }
 
 void Grasscutter::setCrypto(Crypto* crypto)

@@ -4,6 +4,10 @@
 #include <cstdio>
 #include <vector>
 
+#define NOMINMAX // prevents mongocxx conflict with Windows.h
+#include <Windows.h>
+
+
 inline const char* getFileContent(const char* path)
 {
 	try
@@ -13,6 +17,10 @@ inline const char* getFileContent(const char* path)
 		// copy all data into buffer
 		const std::vector buffer(std::istreambuf_iterator(input), {});
 		return buffer.data();
+		/* NOTE: return const buffer on purpose
+		 * cons of such an operation : if not used for a long time, buffer might be deallocated
+		 * pros : faster processing and lower memory cost. If edit needed we can still copy the buffer
+		 */
 	}
 	catch (errno_t err)
 	{
