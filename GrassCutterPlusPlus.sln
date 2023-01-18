@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GrassCutterPlusPlus", "GrassCutterPlusPlus\GrassCutterPlusPlus.vcxproj", "{F6FC7A15-08CE-40FE-A337-52AB617F2771}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GrassCutterPlusPlus", "Server\GrassCutterPlusPlus.vcxproj", "{F6FC7A15-08CE-40FE-A337-52AB617F2771}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

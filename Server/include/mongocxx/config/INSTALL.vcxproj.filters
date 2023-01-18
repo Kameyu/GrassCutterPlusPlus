@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="G:\GingembreImpact-Dev\mongo-cxx-driver\CMakeFiles\3d87562ae7debf78f0c5754284437e90\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{4DF563ED-CA0B-31E3-82B5-5BFB22D70993}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,6 +1,0 @@
-# CMake generation dependency list for this directory.
-G:/GingembreImpact-Dev/mongo-cxx-driver/src/bsoncxx/config/CMakeLists.txt
-G:/GingembreImpact-Dev/mongo-cxx-driver/src/bsoncxx/config/config.hpp.in
-G:/GingembreImpact-Dev/mongo-cxx-driver/src/bsoncxx/config/libbsoncxx.pc.in
-G:/GingembreImpact-Dev/mongo-cxx-driver/src/bsoncxx/config/private/config.hh.in
-G:/GingembreImpact-Dev/mongo-cxx-driver/src/bsoncxx/config/version.hpp.in

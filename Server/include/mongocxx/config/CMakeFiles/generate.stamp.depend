@@ -1,0 +1,6 @@
+# CMake generation dependency list for this directory.
+G:/GingembreImpact-Dev/mongo-cxx-driver/src/mongocxx/config/CMakeLists.txt
+G:/GingembreImpact-Dev/mongo-cxx-driver/src/mongocxx/config/config.hpp.in
+G:/GingembreImpact-Dev/mongo-cxx-driver/src/mongocxx/config/libmongocxx-static.pc.in
+G:/GingembreImpact-Dev/mongo-cxx-driver/src/mongocxx/config/private/config.hh.in
+G:/GingembreImpact-Dev/mongo-cxx-driver/src/mongocxx/config/version.hpp.in
