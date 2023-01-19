@@ -33,6 +33,7 @@ public:
 	// Setters
 	void setCrypto(Crypto*);
 	void setConstants(GameConstants*);
+	void setConfig(const Json::Value& cnf);
 
 	
 };

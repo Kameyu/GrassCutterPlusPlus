@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <vector>
 
+#define NOMINMAX
+#include <Windows.h>
+
 inline const std::string RC_DIR("../../resources/");
 
 enum E_ErrorLevel
@@ -12,6 +15,25 @@ enum E_ErrorLevel
 	IMPORTANT,
 	NORMAL
 };
+
+inline std::string LoadResource(const int id, const wchar_t* type)
+{
+	if (const HRSRC hResource = FindResource(nullptr, MAKEINTRESOURCE(id), type))
+	{
+		if (const HGLOBAL hResourceData = LoadResource(nullptr, hResource))
+		{
+	        if (const LPVOID pResourceData = LockResource(hResourceData))
+			{
+		        const DWORD dwSize = SizeofResource(nullptr, hResource);
+                std::string data(static_cast<const char*>(pResourceData), dwSize);
+				UnlockResource(hResourceData);
+				FreeResource(hResourceData);
+				return data;
+			}
+		}
+	}
+	return {};
+}
 
 inline std::string getFileContent(const std::string& path)
 {

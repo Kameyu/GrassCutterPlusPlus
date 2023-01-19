@@ -11,6 +11,10 @@
 #include "mongocxx/instance.hpp"
 #include "mongocxx/uri.hpp"
 
+#include "resource.h"
+
+namespace fs = std::filesystem;
+
 Grasscutter::Grasscutter()
 {
 	init();
@@ -28,7 +32,11 @@ inline void Grasscutter::init()
 	/*
 	 * Server integrity checkup
 	 */
-	integrityCheckup();
+	if (!integrityCheckup())
+		shutdown(IMPORTANT, "Server integrity checkup failed.");
+
+	// TODO : gacha
+
 
 	/* TODO : Init mongocxx client */
 	mongocxx::instance instance{}; // This should be done only once. Init the instance.
@@ -48,7 +56,9 @@ void Grasscutter::loadConfig()
 		s = std::string((std::istreambuf_iterator(file)), std::istreambuf_iterator<char>());
 	else
 	{
+		std::cerr << "config.json not found, generating new default... ";
 		generateDefaultConfig(); // will overwrite configFile and write out config.json
+		std::cerr << "Done." << std::endl; // TODO : add return check
 		return;
 	}
 	//			src		dest
@@ -57,134 +67,14 @@ void Grasscutter::loadConfig()
 
 void Grasscutter::generateDefaultConfig()
 {
-	// Account
-	defaultConfig["account"]["EXPERIMENTAL_RealPassword"] = false;
-	defaultConfig["account"]["autoCreate"] = false;
-	defaultConfig["account"]["defaultPermissions"] = Json::arrayValue; // empty array
-	defaultConfig["account"]["maxPlayer"] = -1;
+	Json::Reader reader;
+	const std::string s = LoadResource(IDR_JSON1, L"JSON");
+	reader.parse(s, this->defaultConfig);
 
-	// Database Info
-	defaultConfig["databaseInfo"]["game"]["collection"] = "grasscutter";
-	defaultConfig["databaseInfo"]["game"]["connectionUri"] = "mongodb://localhost:27017";
-	defaultConfig["databaseInfo"]["server"]["collection"] = "grasscutter";
-	defaultConfig["databaseInfo"]["server"]["connectionUri"] = "mongodb://localhost:27017";
-
-	// Folder Structure
-	defaultConfig["folderStructure"]["data"] = "./data/";
-	defaultConfig["folderStructure"]["packets"] = "./packets/";
-	defaultConfig["folderStructure"]["plugins"] = "./plugins/"; // yet to do
-	defaultConfig["folderStructure"]["resources"] = "./resources/";
-	defaultConfig["folderStructure"]["scripts"] = "resources:Scripts/";
-
-	// Language
-	defaultConfig["language"]["document"] = "EN";
-	defaultConfig["language"]["fallback"] = "en_US";
+	// set system language in default config file
 	defaultConfig["language"]["language"] = boost::locale::util::get_system_locale().substr(0, 5).c_str();
 
-	// Server
-	defaultConfig["server"]["debugWhitelist"] = Json::arrayValue;
-	defaultConfig["server"]["debugBlacklist"] = Json::arrayValue;
-	defaultConfig["server"]["debugMode"]["isShowLoopPackets"] = false;
-	defaultConfig["server"]["debugMode"]["isShowPacketPayload"] = false;
-	defaultConfig["server"]["debugMode"]["logPackets"] = "ALL";
-	defaultConfig["server"]["debugMode"]["logRequests"] = "ALL";
-	defaultConfig["server"]["debugMode"]["serverLoggerLevel"]["levelInt"] = 10000;
-	defaultConfig["server"]["debugMode"]["serverLoggerLevel"]["levelStr"] = "DEBUG";
-	defaultConfig["server"]["debugMode"]["servicesLoggerLevel"]["levelInt"] = 20000;
-	defaultConfig["server"]["debugMode"]["servicesLoggerLevel"]["levelStr"] = "INFO";
-	defaultConfig["server"]["dispatch"]["defaultName"] = "Grasscutter";
-	defaultConfig["server"]["dispatch"]["logRequests"] = "NONE";
-	defaultConfig["server"]["dispatch"]["regions"] = Json::arrayValue;
-	defaultConfig["server"]["game"]["accessAddress"] = "127.0.0.1";
-	defaultConfig["server"]["game"]["accessPort"] = 0;
-	defaultConfig["server"]["game"]["bindAddress"] = "0.0.0.0";
-	defaultConfig["server"]["game"]["bindPort"] = 22102;
-	defaultConfig["server"]["game"]["enableConsole"] = true;
-	defaultConfig["server"]["game"]["enableScriptInBigWorld"] = false;
-	defaultConfig["server"]["game"]["gameOptions"]["avatarLimits"]["multiplayerTeam"] = 4;
-	defaultConfig["server"]["game"]["gameOptions"]["avatarLimits"]["singlePlayerTeam"] = 4;
-	defaultConfig["server"]["game"]["gameOptions"]["enableShopItems"] = true;
-	defaultConfig["server"]["game"]["gameOptions"]["energyUsage"] = true;
-	defaultConfig["server"]["game"]["gameOptions"]["fishhookTeleport"] = true;
-	defaultConfig["server"]["game"]["gameOptions"]["inventoryLimits"]["all"] = 30000;
-	defaultConfig["server"]["game"]["gameOptions"]["inventoryLimits"]["furniture"] = 2000;
-	defaultConfig["server"]["game"]["gameOptions"]["inventoryLimits"]["materials"] = 2000;
-	defaultConfig["server"]["game"]["gameOptions"]["inventoryLimits"]["relics"] = 2000;
-	defaultConfig["server"]["game"]["gameOptions"]["inventoryLimits"]["weapons"] = 2000;
-	defaultConfig["server"]["game"]["gameOptions"]["questing"] = false;
-	defaultConfig["server"]["game"]["gameOptions"]["rates"]["adventureExp"] = 1.0;
-	defaultConfig["server"]["game"]["gameOptions"]["rates"]["leyLines"] = 1.0;
-	defaultConfig["server"]["game"]["gameOptions"]["rates"]["mora"] = 1.0;
-	defaultConfig["server"]["game"]["gameOptions"]["resinOptions"]["cap"] = 160;
-	defaultConfig["server"]["game"]["gameOptions"]["resinOptions"]["rechargeTime"] = 480;
-	defaultConfig["server"]["game"]["gameOptions"]["resinOptions"]["resinUsage"] = false;
-	defaultConfig["server"]["game"]["gameOptions"]["sceneEntityLimit"] = 1000;
-	defaultConfig["server"]["game"]["gameOptions"]["staminaUsage"] = true;
-	defaultConfig["server"]["game"]["gameOptions"]["watchGachaConfig"] = false;
-	defaultConfig["server"]["game"]["isShowLoopPackets"] = false;
-	defaultConfig["server"]["game"]["isShowPacketPayload"] = false;
-
-	Json::Value dat(Json::arrayValue);
-	dat.append(2007);
-	dat.append(1002);
-	dat.append(4010);
-	defaultConfig["server"]["game"]["joinOptions"]["welcomeEmotes"] = dat;
-	dat.clear();
-
-	defaultConfig["server"]["game"]["joinOptions"]["welcomeMail"]["content"] =
-		R"(Hi there!\r\nFirst of all, welcome to Grasscutter. If you have any issues, please let us know so that Kameyu can help you! \r\n\r\nCheck out our:\r\n<type=\"browser\" text=\"Discord\" href=\"https://discord.gg/T5vZU6UyeG\"/>\n)";
-
-	{ //Additional scope was created so temporary values are deleted after `dat` is filled.
-		Json::Value lst;
-		lst["itemCount"] = 1;
-		lst["itemId"] = 13509;
-		lst["itemLevel"] = 1;
-		dat.append(lst);
-		lst.clear();
-		lst["itemCount"] = 99999;
-		lst["itemId"] = 201;
-		lst["itemLevel"] = 1;
-		dat.append(lst);
-		lst.clear();
-	} // `lst` will be removed after this scope, but not `dat`. We don't need `lst` anymore.
-	defaultConfig["server"]["game"]["joinOptions"]["welcomeMail"]["items"] = dat;
-	dat.clear();
-
-	defaultConfig["server"]["game"]["joinOptions"]["welcomeMail"]["sender"] = "Kameyu";
-	defaultConfig["server"]["game"]["joinOptions"]["welcomeMail"]["title"] = "Welcome to Grasscutter!";
-	defaultConfig["server"]["game"]["joinOptions"]["welcomeMessage"] = "Welcome to a Grasscutter server.";
-	defaultConfig["server"]["game"]["kcpInterval"] = 20;
-	defaultConfig["server"]["game"]["loadEntitiesForPlayerRange"] = 100;
-	defaultConfig["server"]["game"]["loadPackets"] = "NONE";
-	defaultConfig["server"]["game"]["serverAccount"]["adventureRank"] = 1;
-	defaultConfig["server"]["game"]["serverAccount"]["avatarId"] = 10000007;
-	defaultConfig["server"]["game"]["serverAccount"]["nameCardId"] = 210001;
-	defaultConfig["server"]["game"]["serverAccount"]["nickName"] = "Server";
-	defaultConfig["server"]["game"]["serverAccount"]["signature"] = "Welcome to Grasscutter !";
-	defaultConfig["server"]["game"]["serverAccount"]["worldLevel"] = 0;
-	defaultConfig["server"]["http"]["accessAddress"] = "127.0.0.1";
-	defaultConfig["server"]["http"]["accessPort"] = 0;
-	defaultConfig["server"]["http"]["bindAddress"] = "0.0.0.0";
-	defaultConfig["server"]["http"]["bindPort"] = 443;
-	defaultConfig["server"]["http"]["encryption"]["keystore"] = "./keystore.p12";
-	defaultConfig["server"]["http"]["encryption"]["keystorePassword"] = "123456";
-	defaultConfig["server"]["http"]["encryption"]["useEncryption"] = true;
-	defaultConfig["server"]["http"]["encryption"]["useInRouting"] = true;
-	defaultConfig["server"]["http"]["files"]["errorFile"] = "./404.html";
-	defaultConfig["server"]["http"]["files"]["indexFile"] = "./index.html";
-
-	dat.append("*");
-	defaultConfig["server"]["http"]["policies"]["cors"]["allowedOrigins"] = dat;
-	dat.clear();
-
-	defaultConfig["server"]["http"]["policies"]["cors"]["enabled"] = false;
-	defaultConfig["server"]["logCommands"] = false;
-	defaultConfig["server"]["runMode"] = "HYBRID";
-
-	// Version
-	defaultConfig["version"] = 4;
-
-	// set up Json builder to write config file
+	// define which file to write, and write it
 	Json::StreamWriterBuilder builder;
 	builder["commentStyle"] = "None";
 	builder["indentation"] = "	";
@@ -195,36 +85,53 @@ void Grasscutter::generateDefaultConfig()
 	writer->write(defaultConfig, &outputFileStream);
 	outputFileStream.close();
 
-	// set current config to default config
-	configFile = defaultConfig; // will overwrite comments
+	setConfig(defaultConfig);
 }
 
 bool Grasscutter::integrityCheckup()
 {
-#ifdef _DEBUG
-	shutdown(NORMAL, "Skip integrity check");
-#endif
+	// GameServer resources (not App resources)
+	const std::string res = configFile["folderStructure"]["resources"].asString();
 
-	// resources
-	if (!std::filesystem::directory_iterator("./resources/")->exists())
+	// if resources dir does not exist, BinOutput & ExcelBinOutput do not exist either
+	if (!fs::directory_iterator(res)->exists())
 	{
-		std::cout << "Resources folder not found. Creating and exiting..." << std::endl;
+		std::cout << "resources folder not found. Creating and exiting..." << std::endl;
+		fs::create_directories(res+"BinOutput/");
+		fs::create_directory(res+"ExcelBinOutput/");
 		return false;
 	}
 
 	// BinOutput + ExcelBinOutput
-	/*if (!std::filesystem::directory_iterator("./resources/BinOutput/")->exists() ||
-		!std::filesystem::directory_iterator("./resources/ExcelBinOutput/")->exists())
+	if (!fs::directory_iterator(res+"BinOutput/")->exists())
 	{
-		std::cout << "Bin folders not found. Creating and exiting..." << std::endl;
+		std::cout << "resources/BinOutput folder not found. Creating and exiting..." << std::endl;
+		fs::create_directory(res+"BinOutput/");
 		return false;
-	}*/
+	}
+
+	if (!fs::directory_iterator(res+"ExcelBinOutput/")->exists())
+	{
+		std::cout << "resources/ExcelBinOutput folder not found. Creating and exiting..." << std::endl;
+		fs::create_directory(res+"ExcelBinOutput/");
+		return false;
+	}
 
 	// game data checkup
-	/*std::string s = configFile["folderStructure"]["data"]
-	if (!std::filesystem::directory_iterator())*/
+	if (!fs::directory_iterator(RC_DIR+configFile["folderStructure"]["data"].asString())->exists())
+	{
+		std::cout << "defaults/data/ folder not found or incomplete. Creating and exiting..." << std::endl;
+		fs::create_directories(res+configFile["folderStructure"]["data"].asString());
 
+		if (is_empty(*fs::directory_iterator(RC_DIR+configFile["folderStructure"]["data"].asString())))
+			return false;
+	}
 	return true;
+}
+
+void Grasscutter::setConfig(const Json::Value& cnf)
+{
+	this->configFile = cnf;
 }
 
 void Grasscutter::setCrypto(Crypto* crypto)

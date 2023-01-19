@@ -160,6 +160,13 @@
     <ClInclude Include="include\Grasscutter.h" />
     <ClInclude Include="include\Position.h" />
     <ClInclude Include="include\Utils.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Server.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\defaultconfig.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
