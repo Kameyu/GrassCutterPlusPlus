@@ -151,6 +151,7 @@
     <ClInclude Include="include\GameConstants.h" />
     <ClInclude Include="include\Grasscutter.h" />
     <ClInclude Include="include\Position.h" />
+    <ClInclude Include="include\resource.h" />
     <ClInclude Include="include\Utils.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

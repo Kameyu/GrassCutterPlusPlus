@@ -11,4 +11,5 @@ int main(int argc, char** argv)
 {
 	//TODO : args, logger
 	auto* app = new Grasscutter(); // init server
+	std::system("pause");
 }

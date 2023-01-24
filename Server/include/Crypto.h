@@ -3,9 +3,8 @@
 #include <string>
 #include "cryptopp/rsa.h"
 
-class Crypto final
+class Crypto
 {
-private:
 	std::string DISPATCH_KEY;
 	std::string DISPATCH_SEED;
 	std::string ENCRYPT_KEY;
@@ -14,8 +13,6 @@ private:
 	uint64_t ENCRYPT_SEED = {}; // must be 8 bytes
 	CryptoPP::RSA::PrivateKey CUR_SIGNING_KEY;
 	std::map<const int, CryptoPP::RSA::PublicKey> EncryptionKeys = {};
-
-	friend class Grasscutter; // Befriend class Grasscutter
 
 public:
 	Crypto() = default;
@@ -28,7 +25,7 @@ public:
 	Crypto& operator=(Crypto&&) = delete;
 
 	static void _xor(char* packet, const char* key);
-	uint8_t loadKeys();
+	void loadKeys(const std::string&);
 	void createSessionKey(int length);
 
 	//Getters

@@ -21,7 +21,7 @@
 	},
 	"folderStructure" : 
 	{
-		"data" : "./defaults/data/",
+		"data" : "./data/",
 		"packets" : "./packets/",
 		"plugins" : "./plugins/",
 		"resources" : "./resources/",

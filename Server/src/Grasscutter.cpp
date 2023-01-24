@@ -27,7 +27,7 @@ inline void Grasscutter::init()
 	setCrypto(new Crypto);
 	setConstants(new GameConstants);
 	cryptoModule->setEncryptSeed(std::stoull("11468049314633205968"));
-	cryptoModule->loadKeys(); // Load keys once Crypto module is up
+	cryptoModule->loadKeys(resolveJsonPath(configFile, "folderStructure.resources").asString()); // Load keys once Crypto module is up
 
 	/*
 	 * Server integrity checkup
@@ -35,8 +35,8 @@ inline void Grasscutter::init()
 	if (!integrityCheckup())
 		shutdown(IMPORTANT, "Server integrity checkup failed.");
 
-	// TODO : gacha
-
+	// TODO : language
+	loadLanguage(resolveJsonPath(configFile, "language.language").asString());
 
 	/* TODO : Init mongocxx client */
 	mongocxx::instance instance{}; // This should be done only once. Init the instance.
@@ -48,6 +48,9 @@ inline void Grasscutter::init()
 	 * do stuff... */
 }
 
+/**
+ * \brief Loads the config file from the root directory
+ */
 void Grasscutter::loadConfig()
 {
 	Json::Reader reader;
@@ -65,6 +68,40 @@ void Grasscutter::loadConfig()
 	reader.parse(s, this->configFile);
 }
 
+/**
+ * \brief Loads the language file into the emulator class
+ * \param langCode contains the formatted language code as locale, e.g. en_US
+ */
+void Grasscutter::loadLanguage(std::string langCode)
+{
+	std::string RC_DIR = resolveJsonPath(configFile, "folderStructure.resources").asString();
+	langCode[2] = '-'; // replace _ with - as GC Java uses dashes instead of underscores - I'm too lazy to edit everything manually
+	this->lang = langCode;
+
+	// get contents of language file
+	Json::Reader reader;
+	std::string s;
+	if (std::ifstream file(RC_DIR+std::string("languages/"+this->lang+".json"), std::ios::binary); file)
+		s = std::string((std::istreambuf_iterator(file)), std::istreambuf_iterator<char>());
+	else
+	{
+		if (lang != "en-US")
+		{
+			std::cerr << RC_DIR+this->lang << ".json not found. Loading fallback en-US instead.";
+			loadLanguage("en-US");
+		}
+		else
+			shutdown(CRITICAL, "languages/en-US.json not found.");
+		return;
+	}
+	//			src		dest
+	reader.parse(s, this->languageFile);
+}
+
+/**
+ * \brief If config.json cannot be found, will generate a new file.
+ * The default file is compiled as a resource file within the code (defaultconfig.json).
+ */
 void Grasscutter::generateDefaultConfig()
 {
 	Json::Reader reader;
@@ -88,6 +125,11 @@ void Grasscutter::generateDefaultConfig()
 	setConfig(defaultConfig);
 }
 
+/**
+ * \brief Will check if the folders are present in the resources directory
+ * \return true if folders exist, false if folders do not exist or if gacha
+ * file is missing in the data directory.
+ */
 bool Grasscutter::integrityCheckup()
 {
 	// GameServer resources (not App resources)
@@ -118,13 +160,19 @@ bool Grasscutter::integrityCheckup()
 	}
 
 	// game data checkup
-	if (!fs::directory_iterator(RC_DIR+configFile["folderStructure"]["data"].asString())->exists())
+	if (!fs::directory_iterator(configFile["folderStructure"]["data"].asString())->exists())
 	{
-		std::cout << "defaults/data/ folder not found or incomplete. Creating and exiting..." << std::endl;
-		fs::create_directories(res+configFile["folderStructure"]["data"].asString());
+		std::cout << "data/ folder not found or incomplete. Creating and exiting..." << std::endl;
+		fs::create_directories(configFile["folderStructure"]["data"].asString());
 
-		if (is_empty(*fs::directory_iterator(RC_DIR+configFile["folderStructure"]["data"].asString())))
+		if (is_empty(*fs::directory_iterator(configFile["folderStructure"]["data"].asString())))
 			return false;
+
+		if (!fs::directory_iterator(configFile["folderStructure"]["data"].asString()+"mappings.js")->exists())
+		{
+			std::cerr << "Unable to locate gacha mappings in data/" << std::endl;
+			return false;
+		}
 	}
 	return true;
 }

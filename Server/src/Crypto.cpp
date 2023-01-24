@@ -4,6 +4,7 @@
 #include <iostream>
 #include <filesystem>
 
+#include "Grasscutter.h"
 #include "Utils.h"
 #include "cryptopp/files.h"
 #include "Crypto.h"
@@ -25,21 +26,25 @@ void Crypto::_xor(char* packet, const char* key)
 	}
 }
 
-uint8_t Crypto::loadKeys()
+/**
+ * \brief Loads RSA keys to the emulator class
+ * \param rcpath The path of the resource folder containing the keys
+ */
+void Crypto::loadKeys(const std::string& rcpath)
 {
-	setDispatchKey(RC_DIR+"keys/dispatchKey.bin"); // DISPATCH_KEY
-	setDispatchSeed(RC_DIR+"keys/dispatchSeed.bin"); // DISPATCH_SEED
-	setEncryptKey(RC_DIR+"keys/secretKey.bin"); // ENCRYPT_KEY
-	setEncryptSeedBuffer(RC_DIR+"keys/secretKeyBuffer.bin"); // ENCRYPT_SEED_BUFFER
+	setDispatchKey(getFileContent(rcpath+"keys/dispatchKey.bin")); // DISPATCH_KEY
+	setDispatchSeed(getFileContent(rcpath+"keys/dispatchSeed.bin")); // DISPATCH_SEED
+	setEncryptKey(getFileContent(rcpath+"keys/secretKey.bin")); // ENCRYPT_KEY
+	setEncryptSeedBuffer(getFileContent(rcpath+"keys/secretKeyBuffer.bin")); // ENCRYPT_SEED_BUFFER
 
 	// CUR_SIGNING_KEY
-	setSigningKey(RC_DIR+"keys/signingKey.der"); // Not sure this works, but my guess is it will
+	setSigningKey(rcpath+"keys/SigningKey.der"); // Tested working, modulus matches
 	// Load each X_Pub.der key
-	for (const auto& entry : std::filesystem::directory_iterator(RC_DIR+"keys/game_keys/"))
+	for (const auto& entry : std::filesystem::directory_iterator(rcpath+"keys/game_keys/"))
 	{
 		if (entry.path().extension() == ".der")
 		{ // Found our pub_keys
-			int idx = std::stoi(entry.path().filename().string()); // X_Pub.der
+			int idx = std::stoi(entry.path().filename().string()); // X_Pub.der -> idx = X
 			try
 			{ // Load the RSA keys from .der files
 				CryptoPP::RSA::PublicKey pubKey;
@@ -53,10 +58,13 @@ uint8_t Crypto::loadKeys()
 			}
 		}
 	}
-	return 0;
 }
 
-void Crypto::createSessionKey(const int length)
+/**
+ * \brief Will generate a random session key
+ * \param length the size in bytes of the resulting key (default: 8 bytes)
+ */
+void Crypto::createSessionKey(const int length = 8)
 {
 	std::random_device rd;
     std::mt19937 gen(rd());
@@ -93,6 +101,10 @@ void Crypto::setEncryptSeedBuffer(const std::string& buf)
 	this->ENCRYPT_SEED_BUFFER = buf;
 }
 
+/**
+ * \brief Loads the signing key as a CryptoPP::RSA::PrivateKey
+ * \param path The path of the file to load
+ */
 void Crypto::setSigningKey(const std::string& path)
 {
 	try

@@ -5,11 +5,14 @@
 
 class Grasscutter
 {
-private:
+//private: (implicit)
 	Crypto* cryptoModule{};
 	GameConstants* constants{};
 	Json::Value configFile{};
 	Json::Value defaultConfig{};
+
+	std::string lang{};
+	Json::Value languageFile{};
 
 public:
 	Grasscutter();
@@ -25,15 +28,16 @@ public:
 	void loadConfig();
 	void generateDefaultConfig();
 	bool integrityCheckup();
-
+	void loadLanguage(std::string langCode);
+	
 	// Getters
-	[[nodiscard]] Crypto* getCrypto() const { return this->cryptoModule; }
-	[[nodiscard]] GameConstants* getConstants() const { return this->constants; }
+	[[nodiscard]] Crypto* getCrypto() const { return cryptoModule; }
+	[[nodiscard]] GameConstants* getConstants() const { return constants; }
+	[[nodiscard]] const Json::Value* getConfig() const { return &configFile; }
+	[[nodiscard]] const Json::Value* getDefaultConfig() const { return &defaultConfig; }
 
 	// Setters
 	void setCrypto(Crypto*);
 	void setConstants(GameConstants*);
 	void setConfig(const Json::Value& cnf);
-
-	
 };

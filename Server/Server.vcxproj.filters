@@ -50,6 +50,9 @@
     <ClInclude Include="resource.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\resource.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Server.rc">
